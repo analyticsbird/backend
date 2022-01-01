@@ -29,8 +29,11 @@ def has_app_access(f) -> Callable:
         
         apps = token_data['apps']['user_app']
 
-        post_data = request.json
-        app_id = post_data.get('app_id')
+        app_id = request.args.get("app_id")
+
+        if app_id is None:
+            return {"status":"fail", "message":"Please provide a valid app_id"}, 404
+
 
         if not any(app['app_id'] == app_id for app in apps):
             return {"status":"fail", "message":"Not authorised"}, 401

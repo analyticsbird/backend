@@ -52,12 +52,11 @@ def feedback():
             return {"status":"failure","message": str(e) }
 
 
-@api.route('/rating-report', methods = ['POST'])
+@api.route('/report', methods = ['GET'])
 @token_required
 @has_app_access
 def totalRating():
-    post_data = request.json
-    app_id = post_data.get('app_id')
+    app_id = request.args.get("app_id")
     
     if app_id:
         app = App.query.filter_by(app_id= app_id).first()
@@ -77,9 +76,17 @@ def totalRating():
         ).filter(CustomerRating.app_id == app.id, CustomerRating.feedback.isnot(None)
         ).count()
         
-        rating = {}
+        rating = {
+            "1":0,
+            "2":0,
+            "3":0,
+            "4":0,
+            "5":0,
+        }
+        
         for customer in customer_ratings:
-            rating[customer[0]] = customer[1]
+            rating[str(customer[0])] = customer[1]
+
         return {
                 "data":{ 
                     "totalRating": total_ratings, 
