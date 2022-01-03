@@ -66,6 +66,14 @@ def totalRating():
         ).filter(CustomerRating.app_id == app.id
         ).group_by(CustomerRating.rating).all()
 
+        date = db.func.date_trunc('day', CustomerRating.updated_at)
+        customer_ratings_by_date = db.session.query(
+            CustomerRating.rating, 
+            db.func.count(CustomerRating.rating),
+            date
+        ).filter(CustomerRating.app_id == app.id
+        ).group_by(CustomerRating.rating, date).all()
+
         total_ratings = db.session.query(
             CustomerRating.rating
         ).filter(CustomerRating.app_id == app.id
@@ -91,7 +99,8 @@ def totalRating():
                 "data":{ 
                     "totalRating": total_ratings, 
                     "totalFeedback": total_feedback, 
-                    "ratings": rating
+                    "ratings": rating,
+                    "ratings_by_date":customer_ratings_by_date
                 },
                 "status":"success"
             }
