@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from app.main.model import CustomerRating, App
 from app.main.utils.decorators import token_required, has_app_access
+from app.main.serializers.customer_rating_schema import CustomerFeedbackSchema
 from .. import db
 
 api = Blueprint("rating", __name__)
@@ -55,7 +56,7 @@ def feedback():
 @api.route('/report', methods = ['GET'])
 @token_required
 @has_app_access
-def totalRating():
+def get_rating_report():
     app_id = request.args.get("app_id")
     
     if app_id:
@@ -100,9 +101,38 @@ def totalRating():
                     "totalRating": total_ratings, 
                     "totalFeedback": total_feedback, 
                     "ratings": rating,
-                    "ratings_by_date":customer_ratings_by_date
+                    "ratingsByDate":customer_ratings_by_date
                 },
                 "status":"success"
             }
+    else:
+        return { "status":"fail", "message":"Invalid app_id" }, 404
+
+
+@api.route('/feedback', methods = ['GET'])
+@token_required
+@has_app_access
+def get_feedback():
+    app_id = request.args.get("app_id")
+    
+    if app_id:
+        app = App.query.filter_by(app_id= app_id).first()
+        customer_feedback = db.session.query(
+            CustomerRating.email,
+            CustomerRating.feedback,
+            CustomerRating.updated_at
+        ).filter(
+            CustomerRating.app_id == app.id, 
+            CustomerRating.feedback != None
+        ).all()
+
+        print(customer_feedback)
+        customer_feedback_schema = CustomerFeedbackSchema(many=True)
+        customer_feedback_dump = customer_feedback_schema.dump(customer_feedback)
+        return {
+            "data":{
+                "feedback": customer_feedback_dump
+            }
+        }
     else:
         return { "status":"fail", "message":"Invalid app_id" }, 404
