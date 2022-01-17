@@ -126,7 +126,6 @@ def get_feedback():
             CustomerRating.feedback != None
         ).all()
 
-        print(customer_feedback)
         customer_feedback_schema = CustomerFeedbackSchema(many=True)
         customer_feedback_dump = customer_feedback_schema.dump(customer_feedback)
         return {
